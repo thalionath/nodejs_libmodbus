@@ -1,13 +1,13 @@
 {
   "name": "modbus",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "libmodbus binding",
   "keywords": [
     "modbus"
   ],
   "main": "modbus.js",
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 0.9.9"
   },
   "scripts": {
     "install": "./make_libmodbus.sh && node-gyp configure build --nodedir=~/dev/node",
@@ -21,6 +21,10 @@
     {
       "name": "Davydov Denis",
       "email": "mail@tuxnsk.ru"
+    },
+    {
+      "name": "Craig Anderson",
+      "email": "cdazero@gmail.com"
     }
   ],
   "repository": {
