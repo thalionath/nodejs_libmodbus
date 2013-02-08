@@ -32,13 +32,13 @@ Handle<Value> js_new_rtu(const Arguments& args) {
 	
 	if (ctx == NULL) return Null();
 	
-	return External::Wrap(ctx);
+	return External::New(ctx);
 }
 
 // int modbus_rtu_get_serial_mode(modbus_t *ctx);
 // Integer rtu_get_serial_mode(External);
 Handle<Value> js_rtu_get_serial_mode(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_rtu_get_serial_mode(ctx);
 	
@@ -48,7 +48,7 @@ Handle<Value> js_rtu_get_serial_mode(const Arguments& args) {
 // int modbus_rtu_set_serial_mode(modbus_t *ctx, int mode);
 // Integer rtu_set_serial_mode(External, Integer);
 Handle<Value> js_rtu_set_serial_mode(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int mode = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_rtu_set_serial_mode(ctx, mode);
@@ -87,7 +87,7 @@ Handle<Value> js_new_tcp(const Arguments& args) {
 	
 	if (ctx == NULL) return Null();
 	
-	return External::Wrap(ctx);
+	return External::New(ctx);
 }
 
 // modbus_t *modbus_new_tcp_pi(const char *node, const char *service);
@@ -100,13 +100,13 @@ Handle<Value> js_new_tcp_pi(const Arguments& args) {
 	
 	if (ctx == NULL) return Null();
 	
-	return External::Wrap(ctx);
+	return External::New(ctx);
 }
 
 // void modbus_free(modbus_t *ctx);
 // Undefined free(External);
 Handle<Value> js_free(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_free(ctx);
 	
@@ -116,7 +116,7 @@ Handle<Value> js_free(const Arguments& args) {
 // void modbus_get_byte_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined get_byte_timeout(External, Object);
 Handle<Value> js_get_byte_timeout(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
 	struct timeval timeout;
@@ -133,7 +133,7 @@ Handle<Value> js_get_byte_timeout(const Arguments& args) {
 // void modbus_set_byte_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined set_byte_timeout(External, Object);
 Handle<Value> js_set_byte_timeout(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
 	struct timeval timeout;
@@ -147,7 +147,7 @@ Handle<Value> js_set_byte_timeout(const Arguments& args) {
 // void modbus_set_debug(modbus_t *ctx, int boolean);
 // Undefined set_debug(External, Integer);
 Handle<Value> js_set_debug(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int boolean = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	modbus_set_debug(ctx, boolean);
@@ -158,7 +158,7 @@ Handle<Value> js_set_debug(const Arguments& args) {
 // int modbus_set_error_recovery(modbus_t *ctx, modbus_error_recovery_mode error_recovery);
 // Integer set_error_recovery(External, Integer);
 Handle<Value> js_set_error_recovery(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int error_recovery = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_set_error_recovery(ctx, static_cast<modbus_error_recovery_mode>(error_recovery));
@@ -169,7 +169,7 @@ Handle<Value> js_set_error_recovery(const Arguments& args) {
 // int modbus_get_header_length(modbus_t *ctx);
 // Integer get_header_length(External);
 Handle<Value> js_get_header_length(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_get_header_length(ctx);
 	
@@ -179,7 +179,7 @@ Handle<Value> js_get_header_length(const Arguments& args) {
 // void modbus_get_response_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined get_response_timeout(External, Object);
 Handle<Value> js_get_response_timeout(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
 	struct timeval timeout;
@@ -196,7 +196,7 @@ Handle<Value> js_get_response_timeout(const Arguments& args) {
 // void modbus_set_response_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined set_response_timeout(External, Object);
 Handle<Value> js_set_response_timeout(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
 	struct timeval timeout;
@@ -210,7 +210,7 @@ Handle<Value> js_set_response_timeout(const Arguments& args) {
 // int modbus_set_slave(modbus_t *ctx, int slave);
 // Integer set_slave(External, Integer);
 Handle<Value> js_set_slave(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int slave = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_set_slave(ctx, slave);
@@ -221,7 +221,7 @@ Handle<Value> js_set_slave(const Arguments& args) {
 // void modbus_set_socket(modbus_t *ctx, int socket);
 // Undefined set_socket(External, Integer);
 Handle<Value> js_set_socket(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	modbus_set_socket(ctx, socket);
@@ -232,7 +232,7 @@ Handle<Value> js_set_socket(const Arguments& args) {
 // int modbus_get_socket(modbus_t *ctx);
 // Integer get_socket(External);
 Handle<Value> js_get_socket(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_get_socket(ctx);
 	
@@ -249,7 +249,7 @@ Handle<Value> js_get_socket(const Arguments& args) {
 // int modbus_connect(modbus_t *ctx);
 // Integer connect(External);
 Handle<Value> js_connect(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_connect(ctx);
 	
@@ -259,7 +259,7 @@ Handle<Value> js_connect(const Arguments& args) {
 // void modbus_close(modbus_t *ctx);
 // Undefined close(External);
 Handle<Value> js_close(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_close(ctx);
 	
@@ -269,7 +269,7 @@ Handle<Value> js_close(const Arguments& args) {
 // int modbus_flush(modbus_t *ctx);
 // Integer flush(External);
 Handle<Value> js_flush(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_flush(ctx);
 	
@@ -279,7 +279,7 @@ Handle<Value> js_flush(const Arguments& args) {
 // int modbus_read_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest);
 // Integer read_bits(External, Integer, Integer, Array);
 Handle<Value> js_read_bits(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> dest_arr = Local<Array>::Cast(args[3]);
@@ -295,7 +295,7 @@ Handle<Value> js_read_bits(const Arguments& args) {
 // int modbus_read_input_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest);
 // Integer read_input_bits(External, Integer, Integer, Array);
 Handle<Value> js_read_input_bits(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> dest_arr = Local<Array>::Cast(args[3]);
@@ -311,7 +311,7 @@ Handle<Value> js_read_input_bits(const Arguments& args) {
 // int modbus_read_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
 // Integer read_registers(External, Integer, Integer, Array);
 Handle<Value> js_read_registers(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> dest_arr = Local<Array>::Cast(args[3]);
@@ -327,7 +327,7 @@ Handle<Value> js_read_registers(const Arguments& args) {
 // int modbus_read_input_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
 // Integer read_input_registers(External, Integer, Integer, Array);
 Handle<Value> js_read_input_registers(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> dest_arr = Local<Array>::Cast(args[3]);
@@ -343,7 +343,7 @@ Handle<Value> js_read_input_registers(const Arguments& args) {
 // int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest);
 // Integer report_slave_id(External, Array);
 Handle<Value> js_report_slave_id(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> dest_obj = Local<Array>::Cast(args[1]);
 	
 	uint8_t dest[REPORT_LEN];
@@ -363,7 +363,7 @@ Handle<Value> js_report_slave_id(const Arguments& args) {
 // int modbus_write_bit(modbus_t *ctx, int addr, int status);
 // Integer write_bit(External, Integer, Integer);
 Handle<Value> js_write_bit(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int status = Local<Integer>::Cast(args[2])->Int32Value();
 	
@@ -375,7 +375,7 @@ Handle<Value> js_write_bit(const Arguments& args) {
 // int modbus_write_register(modbus_t *ctx, int addr, int value);
 // Integer write_register(External, Integer, Integer);
 Handle<Value> js_write_register(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int value = Local<Integer>::Cast(args[2])->Int32Value();
 	
@@ -387,7 +387,7 @@ Handle<Value> js_write_register(const Arguments& args) {
 // int modbus_write_bits(modbus_t *ctx, int addr, int nb, const uint8_t *src);
 // Integer write_bits(External, Integer, Integer, Array);
 Handle<Value> js_write_bits(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> src_arr = Local<Array>::Cast(args[3]);
@@ -403,7 +403,7 @@ Handle<Value> js_write_bits(const Arguments& args) {
 // int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *src);
 // Integer write_registers(External, Integer, Integer, Array);
 Handle<Value> js_write_registers(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> src_arr = Local<Array>::Cast(args[3]);
@@ -419,7 +419,7 @@ Handle<Value> js_write_registers(const Arguments& args) {
 // int modbus_write_and_read_registers(modbus_t *ctx, int write_addr, int write_nb, const uint16_t *src, int read_addr, int read_nb, const uint16_t *dest);
 // Integer write_and_read_registers(External, Integer, Integer, Array, Integer, Integer, Array);
 Handle<Value> js_write_and_read_registers(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int write_addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int write_nb = Local<Integer>::Cast(args[2])->Int32Value();
 	Local<Array> src_arr = Local<Array>::Cast(args[3]);
@@ -444,7 +444,7 @@ Handle<Value> js_write_and_read_registers(const Arguments& args) {
 //int modbus_send_raw_request(modbus_t *ctx, uint8_t *raw_req, int raw_req_length);
 // Integer send_raw_request(External, Array, Integer);
 Handle<Value> js_send_raw_request(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> raw_req_arr = Local<Array>::Cast(args[1]);
 	int raw_req_length = Local<Integer>::Cast(args[2])->Int32Value();
 	
@@ -459,7 +459,7 @@ Handle<Value> js_send_raw_request(const Arguments& args) {
 // int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp);
 // Integer receive_confirmation(External, Array);
 Handle<Value> js_receive_confirmation(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> rsp_arr = Local<Array>::Cast(args[1]);
 	
 	uint8_t rsp[MODBUS_TCP_MAX_ADU_LENGTH];
@@ -477,7 +477,7 @@ Handle<Value> js_receive_confirmation(const Arguments& args) {
 // int modbus_reply_exception(modbus_t *ctx, const uint8_t *req, unsigned int exception_code);
 // Integer reply_exception(External, Array, Integer);
 Handle<Value> js_reply_exception(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	unsigned int exception_code = Local<Integer>::Cast(args[2])->Int32Value();
 	
@@ -502,13 +502,13 @@ Handle<Value> js_mapping_new(const Arguments& args) {
 	
 	if (map == NULL) return Null();
 	
-	return External::Wrap(map);
+	return External::New(map);
 }
 
 // void modbus_mapping_free(modbus_mapping_t *mb_mapping);
 // Undefined mapping_free(External);
 Handle<Value> js_mapping_free(const Arguments& args) {
-	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Unwrap(args[0]));
+	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_mapping_free(map);
 	
@@ -518,7 +518,7 @@ Handle<Value> js_mapping_free(const Arguments& args) {
 // int modbus_receive(modbus_t *ctx, uint8_t *req);
 // Integer receive(External, Array);
 Handle<Value> js_receive(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	
 	uint8_t req[MODBUS_TCP_MAX_ADU_LENGTH];
@@ -536,10 +536,10 @@ Handle<Value> js_receive(const Arguments& args) {
 // int modbus_reply(modbus_t *ctx, const uint8_t *req, int req_length, modbus_mapping_t *mb_mapping);
 // Integer reply(External, Array, Integer, External);
 Handle<Value> js_reply(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	int req_length = Local<Integer>::Cast(args[2])->Int32Value();
-	modbus_mapping_t *mb_mapping = static_cast<modbus_mapping_t *>(External::Unwrap(args[3]));
+	modbus_mapping_t *mb_mapping = static_cast<modbus_mapping_t *>(External::Cast(*args[3])->Value());
 	
 	uint8_t req[req_length];
 	for (int i = 0; i < req_length; i++) req[i] = req_arr->Get(i)->Uint32Value();
@@ -560,7 +560,7 @@ Handle<Value> js_strerror(const Arguments& args) {
 // int modbus_tcp_listen(modbus_t *ctx, int nb_connection);
 // Integer tcp_listen(External, Integer);
 Handle<Value> js_tcp_listen(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int nb_connection = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_tcp_listen(ctx, nb_connection);
@@ -571,7 +571,7 @@ Handle<Value> js_tcp_listen(const Arguments& args) {
 // int modbus_tcp_accept(modbus_t *ctx, int *socket);
 // Integer tcp_accept(External, Integer);
 Handle<Value> js_tcp_accept(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_tcp_accept(ctx, &socket);
@@ -582,7 +582,7 @@ Handle<Value> js_tcp_accept(const Arguments& args) {
 // int modbus_tcp_pi_listen(modbus_t *ctx, int nb_connection);
 // Integer tcp_pi_listen(External, Integer);
 Handle<Value> js_tcp_pi_listen(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int nb_connection = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_tcp_pi_listen(ctx, nb_connection);
@@ -593,7 +593,7 @@ Handle<Value> js_tcp_pi_listen(const Arguments& args) {
 // int modbus_tcp_pi_accept(modbus_t *ctx, int *socket);
 // Integer tcp_pi_accept(External, Integer);
 Handle<Value> js_tcp_pi_accept(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
 	int ret = modbus_tcp_pi_accept(ctx, &socket);
@@ -604,7 +604,7 @@ Handle<Value> js_tcp_pi_accept(const Arguments& args) {
 // convert modbus_mapping_t* to json object
 // Undefined map_to_json(External, Object);
 Handle<Value> map_to_json(const Arguments& args) {
-	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Unwrap(args[0]));
+	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[0])->Value());
 	Local<Object> jso = Local<Object>::Cast(args[1]);
 	
 	jso->Set(String::New("nb_bits"), Integer::New(map->nb_bits));
@@ -644,7 +644,7 @@ Handle<Value> map_to_json(const Arguments& args) {
 // Undefined json_to_map(Object, External);
 Handle<Value> json_to_map(const Arguments& args) {
 	Local<Object> jso = Local<Object>::Cast(args[0]);
-	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Unwrap(args[1]));
+	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[1])->Value());
 	
 	map->nb_bits = jso->Get(String::New("nb_bits"))->Int32Value();
 	map->nb_input_bits = jso->Get(String::New("nb_input_bits"))->Int32Value();
@@ -686,7 +686,7 @@ void tcp_accept_w(uv_work_t* req) {
     request->ret = modbus_tcp_accept(request->ctx, &(request->socket));
 }
 
-void tcp_accept_a(uv_work_t* req) {
+void tcp_accept_a(uv_work_t* req, int i) {
     HandleScope scope;
 	
     tcp_accept_t* request = (tcp_accept_t*)req->data;
@@ -704,7 +704,7 @@ void tcp_accept_a(uv_work_t* req) {
 // Undefined tcp_accept_async(External, Integer, Function);
 // callback function - Function(Integer);
 Handle<Value> tcp_accept_async(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	Local<Function> cb = Local<Function>::Cast(args[2]);
 	
@@ -733,7 +733,7 @@ void receive_w(uv_work_t* req) {
     request->len = modbus_receive(request->ctx, request->req);
 }
 
-void receive_a(uv_work_t* req) {
+void receive_a(uv_work_t* req, int i) {
     HandleScope scope;
 	
     receive_t* request = (receive_t*)req->data;
@@ -761,7 +761,7 @@ void receive_a(uv_work_t* req) {
 // Undefined receive_async(External, Function);
 // callback function - Function(Array, Integer);
 Handle<Value> receive_async(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Function> cb = Local<Function>::Cast(args[1]);
 	
 	uint8_t *mbreq = new uint8_t[MODBUS_TCP_MAX_ADU_LENGTH];;
@@ -792,7 +792,7 @@ void connect_w(uv_work_t* req) {
     request->ret = modbus_connect(request->ctx);
 }
 
-void connect_a(uv_work_t* req) {
+void connect_a(uv_work_t* req, int i) {
     HandleScope scope;
 	
     connect_t* request = (connect_t*)req->data;
@@ -810,7 +810,7 @@ void connect_a(uv_work_t* req) {
 // Undefined connect_async(External, Function);
 // callback function - Function(Integer);
 Handle<Value> connect_async(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Function> cb = Local<Function>::Cast(args[1]);
 	
 	connect_t* request = new connect_t;
@@ -829,7 +829,7 @@ Handle<Value> connect_async(const Arguments& args) {
 // закрыть из треда
 // Undefined close_mt(External);
 Handle<Value> close_mt(const Arguments& args) {
-	modbus_t *ctx = static_cast<modbus_t *>(External::Unwrap(args[0]));
+	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_close_mt(ctx);
 	
