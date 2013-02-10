@@ -11,8 +11,8 @@
 #include <iostream>
 
 using namespace v8;
-using namespace node;
-using namespace std;
+//using namespace node;
+//using namespace std;
 
 // finger to the sky
 #define REPORT_LEN 0xFF
@@ -967,3 +967,5 @@ extern "C" void init (Handle<Object> target) {
 	target->Set(String::New("connect_async"), FunctionTemplate::New(connect_async)->GetFunction());
 	target->Set(String::New("close_mt"), FunctionTemplate::New(close_mt)->GetFunction());
 }
+
+NODE_MODULE(modbus_binding, init)

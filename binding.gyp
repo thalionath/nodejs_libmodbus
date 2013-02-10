@@ -1,18 +1,11 @@
 {
   'targets': [
     {
-      'target_name': 'libmodbus',
-      'type': '<(library)',
-      'dependencies': [
-      ],
-      'defines': [
-      ],
+      'target_name': 'modbus_binding',
       'include_dirs': [
-        'libmodbus/src',
+        './libmodbus/src',
       ],
       'direct_dependent_settings': {
-        'defines': [
-        ],
         'linkflags': [
           './libmodbus/src/.libs/modbus.o',
           './libmodbus/src/.libs/modbus-data.o',
@@ -21,8 +14,6 @@
           './libmodbus/src/.libs/modbus-tcp.o'
         ],
       },
-      'export_dependent_settings': [
-      ],
       'sources': [
         'src/main.cpp',
       ],
