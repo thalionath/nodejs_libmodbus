@@ -3,6 +3,9 @@
 #include <node.h>
 #include <node_version.h>
 #include <modbus.h>
+//#include <modbus-rtu.h>
+//#include <modbus-tcp.h>
+//#include <modbus-version.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h> 
@@ -11,33 +14,34 @@
 #include <iostream>
 
 using namespace v8;
-//using namespace node;
-//using namespace std;
+using namespace node;
+using namespace std;
 
 // finger to the sky
 #define REPORT_LEN 0xFF
 
 // modbus_t *modbus_new_rtu(const char *device, int baud, char parity, int data_bit, int stop_bit);
 // External new_rtu(String, Integer, String, Integer, Integer);
-Handle<Value> js_new_rtu(const Arguments& args) {
+//Handle<Value> js_new_rtu(const Arguments& args) {
+Handle<Value> NewRtu(const Arguments& args) {
 	String::Utf8Value device(args[0]);
 	int baud = Local<Integer>::Cast(args[1])->Int32Value();
 	String::Utf8Value parity_str(args[2]);
 	int data_bit = Local<Integer>::Cast(args[3])->Int32Value();
 	int stop_bit = Local<Integer>::Cast(args[4])->Int32Value();
-	
+
 	char parity = (*parity_str)[0];
-	
-	modbus_t *ctx = modbus_new_rtu(*device, baud, parity, data_bit, stop_bit);
-	
+
+	modbus_t *ctx = static_cast<modbus_t *>(modbus_new_rtu(*device, baud, parity, data_bit, stop_bit));
+
 	if (ctx == NULL) return Null();
-	
+
 	return External::New(ctx);
 }
 
 // int modbus_rtu_get_serial_mode(modbus_t *ctx);
 // Integer rtu_get_serial_mode(External);
-Handle<Value> js_rtu_get_serial_mode(const Arguments& args) {
+Handle<Value> RtuGetSerialMode(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_rtu_get_serial_mode(ctx);
@@ -47,7 +51,7 @@ Handle<Value> js_rtu_get_serial_mode(const Arguments& args) {
 
 // int modbus_rtu_set_serial_mode(modbus_t *ctx, int mode);
 // Integer rtu_set_serial_mode(External, Integer);
-Handle<Value> js_rtu_set_serial_mode(const Arguments& args) {
+Handle<Value> RtuSetSerialMode(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int mode = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -79,7 +83,7 @@ Handle<Value> js_rtu_set_rts(const Arguments& args) {
 
 // modbus_t *modbus_new_tcp(const char *ip, int port);
 // External new_tcp(String, Integer);
-Handle<Value> js_new_tcp(const Arguments& args) {
+Handle<Value> NewTcp(const Arguments& args) {
 	String::Utf8Value ip(args[0]);
 	int port = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -92,7 +96,7 @@ Handle<Value> js_new_tcp(const Arguments& args) {
 
 // modbus_t *modbus_new_tcp_pi(const char *node, const char *service);
 // External new_tcp_pi(String, String);
-Handle<Value> js_new_tcp_pi(const Arguments& args) {
+Handle<Value> NewTcpPi(const Arguments& args) {
 	String::Utf8Value node(args[0]);
 	String::Utf8Value service(args[1]);
 	
@@ -105,7 +109,7 @@ Handle<Value> js_new_tcp_pi(const Arguments& args) {
 
 // void modbus_free(modbus_t *ctx);
 // Undefined free(External);
-Handle<Value> js_free(const Arguments& args) {
+Handle<Value> Free(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_free(ctx);
@@ -115,7 +119,7 @@ Handle<Value> js_free(const Arguments& args) {
 
 // void modbus_get_byte_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined get_byte_timeout(External, Object);
-Handle<Value> js_get_byte_timeout(const Arguments& args) {
+Handle<Value> GetByteTimeout(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
@@ -132,7 +136,7 @@ Handle<Value> js_get_byte_timeout(const Arguments& args) {
 
 // void modbus_set_byte_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined set_byte_timeout(External, Object);
-Handle<Value> js_set_byte_timeout(const Arguments& args) {
+Handle<Value> SetByteTimeout(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
@@ -146,7 +150,7 @@ Handle<Value> js_set_byte_timeout(const Arguments& args) {
 
 // void modbus_set_debug(modbus_t *ctx, int boolean);
 // Undefined set_debug(External, Integer);
-Handle<Value> js_set_debug(const Arguments& args) {
+Handle<Value> SetDebug(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int boolean = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -157,7 +161,7 @@ Handle<Value> js_set_debug(const Arguments& args) {
 
 // int modbus_set_error_recovery(modbus_t *ctx, modbus_error_recovery_mode error_recovery);
 // Integer set_error_recovery(External, Integer);
-Handle<Value> js_set_error_recovery(const Arguments& args) {
+Handle<Value> SetErrorRecovery(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int error_recovery = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -168,7 +172,7 @@ Handle<Value> js_set_error_recovery(const Arguments& args) {
 
 // int modbus_get_header_length(modbus_t *ctx);
 // Integer get_header_length(External);
-Handle<Value> js_get_header_length(const Arguments& args) {
+Handle<Value> GetHeaderLength(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_get_header_length(ctx);
@@ -178,7 +182,7 @@ Handle<Value> js_get_header_length(const Arguments& args) {
 
 // void modbus_get_response_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined get_response_timeout(External, Object);
-Handle<Value> js_get_response_timeout(const Arguments& args) {
+Handle<Value> GetResponseTimeout(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
@@ -195,7 +199,7 @@ Handle<Value> js_get_response_timeout(const Arguments& args) {
 
 // void modbus_set_response_timeout(modbus_t *ctx, struct timeval *timeout);
 // Undefined set_response_timeout(External, Object);
-Handle<Value> js_set_response_timeout(const Arguments& args) {
+Handle<Value> SetResponseTimeout(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Object> timeout_obj = Local<Object>::Cast(args[1]);
 	
@@ -209,7 +213,7 @@ Handle<Value> js_set_response_timeout(const Arguments& args) {
 
 // int modbus_set_slave(modbus_t *ctx, int slave);
 // Integer set_slave(External, Integer);
-Handle<Value> js_set_slave(const Arguments& args) {
+Handle<Value> SetSlave(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int slave = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -220,7 +224,7 @@ Handle<Value> js_set_slave(const Arguments& args) {
 
 // void modbus_set_socket(modbus_t *ctx, int socket);
 // Undefined set_socket(External, Integer);
-Handle<Value> js_set_socket(const Arguments& args) {
+Handle<Value> SetSocket(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -231,7 +235,7 @@ Handle<Value> js_set_socket(const Arguments& args) {
 
 // int modbus_get_socket(modbus_t *ctx);
 // Integer get_socket(External);
-Handle<Value> js_get_socket(const Arguments& args) {
+Handle<Value> GetSocket(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_get_socket(ctx);
@@ -248,7 +252,7 @@ Handle<Value> js_get_socket(const Arguments& args) {
 
 // int modbus_connect(modbus_t *ctx);
 // Integer connect(External);
-Handle<Value> js_connect(const Arguments& args) {
+Handle<Value> Connect(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_connect(ctx);
@@ -258,7 +262,7 @@ Handle<Value> js_connect(const Arguments& args) {
 
 // void modbus_close(modbus_t *ctx);
 // Undefined close(External);
-Handle<Value> js_close(const Arguments& args) {
+Handle<Value> Close(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_close(ctx);
@@ -268,7 +272,7 @@ Handle<Value> js_close(const Arguments& args) {
 
 // int modbus_flush(modbus_t *ctx);
 // Integer flush(External);
-Handle<Value> js_flush(const Arguments& args) {
+Handle<Value> Flush(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	int ret = modbus_flush(ctx);
@@ -278,7 +282,7 @@ Handle<Value> js_flush(const Arguments& args) {
 
 // int modbus_read_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest);
 // Integer read_bits(External, Integer, Integer, Array);
-Handle<Value> js_read_bits(const Arguments& args) {
+Handle<Value> ReadBits(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -294,7 +298,7 @@ Handle<Value> js_read_bits(const Arguments& args) {
 
 // int modbus_read_input_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest);
 // Integer read_input_bits(External, Integer, Integer, Array);
-Handle<Value> js_read_input_bits(const Arguments& args) {
+Handle<Value> ReadInputBits(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -310,7 +314,7 @@ Handle<Value> js_read_input_bits(const Arguments& args) {
 
 // int modbus_read_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
 // Integer read_registers(External, Integer, Integer, Array);
-Handle<Value> js_read_registers(const Arguments& args) {
+Handle<Value> ReadRegisters(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -326,7 +330,7 @@ Handle<Value> js_read_registers(const Arguments& args) {
 
 // int modbus_read_input_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
 // Integer read_input_registers(External, Integer, Integer, Array);
-Handle<Value> js_read_input_registers(const Arguments& args) {
+Handle<Value> ReadInputRegisters(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -342,7 +346,7 @@ Handle<Value> js_read_input_registers(const Arguments& args) {
 
 // int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest);
 // Integer report_slave_id(External, Array);
-Handle<Value> js_report_slave_id(const Arguments& args) {
+Handle<Value> ReportSlaveId(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> dest_obj = Local<Array>::Cast(args[1]);
 	
@@ -362,7 +366,7 @@ Handle<Value> js_report_slave_id(const Arguments& args) {
 
 // int modbus_write_bit(modbus_t *ctx, int addr, int status);
 // Integer write_bit(External, Integer, Integer);
-Handle<Value> js_write_bit(const Arguments& args) {
+Handle<Value> WriteBit(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int status = Local<Integer>::Cast(args[2])->Int32Value();
@@ -374,7 +378,7 @@ Handle<Value> js_write_bit(const Arguments& args) {
 
 // int modbus_write_register(modbus_t *ctx, int addr, int value);
 // Integer write_register(External, Integer, Integer);
-Handle<Value> js_write_register(const Arguments& args) {
+Handle<Value> WriteRegister(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int value = Local<Integer>::Cast(args[2])->Int32Value();
@@ -386,7 +390,7 @@ Handle<Value> js_write_register(const Arguments& args) {
 
 // int modbus_write_bits(modbus_t *ctx, int addr, int nb, const uint8_t *src);
 // Integer write_bits(External, Integer, Integer, Array);
-Handle<Value> js_write_bits(const Arguments& args) {
+Handle<Value> WriteBits(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -402,7 +406,7 @@ Handle<Value> js_write_bits(const Arguments& args) {
 
 // int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *src);
 // Integer write_registers(External, Integer, Integer, Array);
-Handle<Value> js_write_registers(const Arguments& args) {
+Handle<Value> WriteRegisters(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -418,7 +422,7 @@ Handle<Value> js_write_registers(const Arguments& args) {
 
 // int modbus_write_and_read_registers(modbus_t *ctx, int write_addr, int write_nb, const uint16_t *src, int read_addr, int read_nb, const uint16_t *dest);
 // Integer write_and_read_registers(External, Integer, Integer, Array, Integer, Integer, Array);
-Handle<Value> js_write_and_read_registers(const Arguments& args) {
+Handle<Value> WriteAndReadRegisters(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int write_addr = Local<Integer>::Cast(args[1])->Int32Value();
 	int write_nb = Local<Integer>::Cast(args[2])->Int32Value();
@@ -443,7 +447,7 @@ Handle<Value> js_write_and_read_registers(const Arguments& args) {
 
 //int modbus_send_raw_request(modbus_t *ctx, uint8_t *raw_req, int raw_req_length);
 // Integer send_raw_request(External, Array, Integer);
-Handle<Value> js_send_raw_request(const Arguments& args) {
+Handle<Value> SendRawRequest(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> raw_req_arr = Local<Array>::Cast(args[1]);
 	int raw_req_length = Local<Integer>::Cast(args[2])->Int32Value();
@@ -458,7 +462,7 @@ Handle<Value> js_send_raw_request(const Arguments& args) {
 
 // int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp);
 // Integer receive_confirmation(External, Array);
-Handle<Value> js_receive_confirmation(const Arguments& args) {
+Handle<Value> ReceiveConfirmation(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> rsp_arr = Local<Array>::Cast(args[1]);
 	
@@ -476,7 +480,7 @@ Handle<Value> js_receive_confirmation(const Arguments& args) {
 
 // int modbus_reply_exception(modbus_t *ctx, const uint8_t *req, unsigned int exception_code);
 // Integer reply_exception(External, Array, Integer);
-Handle<Value> js_reply_exception(const Arguments& args) {
+Handle<Value> ReplyException(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	unsigned int exception_code = Local<Integer>::Cast(args[2])->Int32Value();
@@ -492,7 +496,7 @@ Handle<Value> js_reply_exception(const Arguments& args) {
 
 // modbus_mapping_t *modbus_mapping_new(int nb_bits, int nb_input_bits, int nb_registers, int nb_input_registers);
 // External mapping_new(Integer, Integer, Integer, Integer);
-Handle<Value> js_mapping_new(const Arguments& args) {
+Handle<Value> MappingNew(const Arguments& args) {
 	int nb_bits = Local<Integer>::Cast(args[0])->Int32Value();
 	int nb_input_bits = Local<Integer>::Cast(args[1])->Int32Value();
 	int nb_registers = Local<Integer>::Cast(args[2])->Int32Value();
@@ -507,7 +511,7 @@ Handle<Value> js_mapping_new(const Arguments& args) {
 
 // void modbus_mapping_free(modbus_mapping_t *mb_mapping);
 // Undefined mapping_free(External);
-Handle<Value> js_mapping_free(const Arguments& args) {
+Handle<Value> MappingFree(const Arguments& args) {
 	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_mapping_free(map);
@@ -517,7 +521,7 @@ Handle<Value> js_mapping_free(const Arguments& args) {
 
 // int modbus_receive(modbus_t *ctx, uint8_t *req);
 // Integer receive(External, Array);
-Handle<Value> js_receive(const Arguments& args) {
+Handle<Value> Receive(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	
@@ -535,7 +539,7 @@ Handle<Value> js_receive(const Arguments& args) {
 
 // int modbus_reply(modbus_t *ctx, const uint8_t *req, int req_length, modbus_mapping_t *mb_mapping);
 // Integer reply(External, Array, Integer, External);
-Handle<Value> js_reply(const Arguments& args) {
+Handle<Value> Reply(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Array> req_arr = Local<Array>::Cast(args[1]);
 	int req_length = Local<Integer>::Cast(args[2])->Int32Value();
@@ -551,7 +555,7 @@ Handle<Value> js_reply(const Arguments& args) {
 
 // const char *modbus_strerror(*int errnum);
 // String strerror();
-Handle<Value> js_strerror(const Arguments& args) {
+Handle<Value> Strerror(const Arguments& args) {
 	const char *ret = modbus_strerror(errno);
 	
 	return String::New(ret);
@@ -559,7 +563,7 @@ Handle<Value> js_strerror(const Arguments& args) {
 
 // int modbus_tcp_listen(modbus_t *ctx, int nb_connection);
 // Integer tcp_listen(External, Integer);
-Handle<Value> js_tcp_listen(const Arguments& args) {
+Handle<Value> TcpListen(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int nb_connection = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -570,7 +574,7 @@ Handle<Value> js_tcp_listen(const Arguments& args) {
 
 // int modbus_tcp_accept(modbus_t *ctx, int *socket);
 // Integer tcp_accept(External, Integer);
-Handle<Value> js_tcp_accept(const Arguments& args) {
+Handle<Value> TcpAccept(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -592,7 +596,7 @@ Handle<Value> js_tcp_pi_listen(const Arguments& args) {
 
 // int modbus_tcp_pi_accept(modbus_t *ctx, int *socket);
 // Integer tcp_pi_accept(External, Integer);
-Handle<Value> js_tcp_pi_accept(const Arguments& args) {
+Handle<Value> TcpPiAccept(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	
@@ -603,7 +607,7 @@ Handle<Value> js_tcp_pi_accept(const Arguments& args) {
 
 // convert modbus_mapping_t* to json object
 // Undefined map_to_json(External, Object);
-Handle<Value> map_to_json(const Arguments& args) {
+Handle<Value> MapToJson(const Arguments& args) {
 	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[0])->Value());
 	Local<Object> jso = Local<Object>::Cast(args[1]);
 	
@@ -642,7 +646,7 @@ Handle<Value> map_to_json(const Arguments& args) {
 
 // convert json object to modbus_mapping_t*
 // Undefined json_to_map(Object, External);
-Handle<Value> json_to_map(const Arguments& args) {
+Handle<Value> JsonToMap(const Arguments& args) {
 	Local<Object> jso = Local<Object>::Cast(args[0]);
 	modbus_mapping_t *map = static_cast<modbus_mapping_t *>(External::Cast(*args[1])->Value());
 	
@@ -703,7 +707,7 @@ void tcp_accept_a(uv_work_t* req, int i) {
 
 // Undefined tcp_accept_async(External, Integer, Function);
 // callback function - Function(Integer);
-Handle<Value> tcp_accept_async(const Arguments& args) {
+Handle<Value> TcpAcceptAsync(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	int socket = Local<Integer>::Cast(args[1])->Int32Value();
 	Local<Function> cb = Local<Function>::Cast(args[2]);
@@ -760,7 +764,7 @@ void receive_a(uv_work_t* req, int i) {
 
 // Undefined receive_async(External, Function);
 // callback function - Function(Array, Integer);
-Handle<Value> receive_async(const Arguments& args) {
+Handle<Value> ReceiveAsync(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Function> cb = Local<Function>::Cast(args[1]);
 	
@@ -809,7 +813,7 @@ void connect_a(uv_work_t* req, int i) {
 
 // Undefined connect_async(External, Function);
 // callback function - Function(Integer);
-Handle<Value> connect_async(const Arguments& args) {
+Handle<Value> ConnectAsync(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	Local<Function> cb = Local<Function>::Cast(args[1]);
 	
@@ -828,7 +832,7 @@ Handle<Value> connect_async(const Arguments& args) {
 
 // закрыть из треда
 // Undefined close_mt(External);
-Handle<Value> close_mt(const Arguments& args) {
+Handle<Value> CloseMt(const Arguments& args) {
 	modbus_t *ctx = static_cast<modbus_t *>(External::Cast(*args[0])->Value());
 	
 	modbus_close_mt(ctx);
@@ -836,7 +840,8 @@ Handle<Value> close_mt(const Arguments& args) {
 	return Undefined();
 }
 
-extern "C" void init (Handle<Object> target) {
+extern "C" {
+void init (Handle<Object> target) {
 	HandleScope scope;
 	
 	// constants
@@ -906,66 +911,67 @@ extern "C" void init (Handle<Object> target) {
 	target->Set(String::New("MODBUS_TCP_MAX_ADU_LENGTH"), Number::New(MODBUS_TCP_MAX_ADU_LENGTH));
 	
 	// functions
-	target->Set(String::New("new_rtu"), FunctionTemplate::New(js_new_rtu)->GetFunction());
-	target->Set(String::New("rtu_get_serial_mode"), FunctionTemplate::New(js_rtu_get_serial_mode)->GetFunction());
-	target->Set(String::New("rtu_set_serial_mode"), FunctionTemplate::New(js_rtu_set_serial_mode)->GetFunction());
+        NODE_SET_METHOD(target, "new_rtu", NewRtu);
+        NODE_SET_METHOD(target, "rtu_get_serial_mode", RtuGetSerialMode);
+        NODE_SET_METHOD(target, "rtu_set_serial_mode", RtuSetSerialMode);
 	//target->Set(String::New("rtu_get_rts"), FunctionTemplate::New(js_rtu_get_rts)->GetFunction());
 	//target->Set(String::New("rtu_set_rts"), FunctionTemplate::New(js_rtu_set_rts)->GetFunction());
+        
+        NODE_SET_METHOD(target, "new_tcp", NewTcp);
+        NODE_SET_METHOD(target, "new_tcp_pi", NewTcpPi);
 	
-	target->Set(String::New("new_tcp"), FunctionTemplate::New(js_new_tcp)->GetFunction());
-	target->Set(String::New("new_tcp_pi"), FunctionTemplate::New(js_new_tcp_pi)->GetFunction());
+	NODE_SET_METHOD(target, "free", Free);
 	
-	target->Set(String::New("free"), FunctionTemplate::New(js_free)->GetFunction());
+	NODE_SET_METHOD(target, "get_byte_timeout", GetByteTimeout);
+	NODE_SET_METHOD(target, "set_byte_timeout", SetByteTimeout);
+	NODE_SET_METHOD(target, "set_debug", SetDebug);
+        NODE_SET_METHOD(target, "set_error_recovery", SetErrorRecovery);
+	NODE_SET_METHOD(target, "get_header_length", GetHeaderLength);
+	NODE_SET_METHOD(target, "get_response_timeout", GetResponseTimeout);
+	NODE_SET_METHOD(target, "set_response_timeout", SetResponseTimeout);
+	NODE_SET_METHOD(target, "set_slave", SetSlave);
+	NODE_SET_METHOD(target, "set_socket", SetSocket);
+	NODE_SET_METHOD(target, "get_socket", GetSocket);
 	
-	target->Set(String::New("get_byte_timeout"), FunctionTemplate::New(js_get_byte_timeout)->GetFunction());
-	target->Set(String::New("set_byte_timeout"), FunctionTemplate::New(js_set_byte_timeout)->GetFunction());
-	target->Set(String::New("set_debug"), FunctionTemplate::New(js_set_debug)->GetFunction());
-	target->Set(String::New("set_error_recovery"), FunctionTemplate::New(js_set_error_recovery)->GetFunction());
-	target->Set(String::New("get_header_length"), FunctionTemplate::New(js_get_header_length)->GetFunction());
-	target->Set(String::New("get_response_timeout"), FunctionTemplate::New(js_get_response_timeout)->GetFunction());
-	target->Set(String::New("set_response_timeout"), FunctionTemplate::New(js_set_response_timeout)->GetFunction());
-	target->Set(String::New("set_slave"), FunctionTemplate::New(js_set_slave)->GetFunction());
-	target->Set(String::New("set_socket"), FunctionTemplate::New(js_set_socket)->GetFunction());
-	target->Set(String::New("get_socket"), FunctionTemplate::New(js_get_socket)->GetFunction());
+	NODE_SET_METHOD(target, "connect", Connect);
+	NODE_SET_METHOD(target, "close", Close);
+	NODE_SET_METHOD(target, "flush", Flush);
 	
-	target->Set(String::New("connect"), FunctionTemplate::New(js_connect)->GetFunction());
-	target->Set(String::New("close"), FunctionTemplate::New(js_close)->GetFunction());
-	target->Set(String::New("flush"), FunctionTemplate::New(js_flush)->GetFunction());
+	NODE_SET_METHOD(target, "read_bits", ReadBits);
+	NODE_SET_METHOD(target, "read_input_bits", ReadInputBits);
+	NODE_SET_METHOD(target, "read_registers", ReadRegisters);
+	NODE_SET_METHOD(target, "read_input_registers", ReadInputRegisters);
+	NODE_SET_METHOD(target, "report_slave_id", ReportSlaveId);
+	NODE_SET_METHOD(target, "write_bit", WriteBit);
+	NODE_SET_METHOD(target, "write_register", WriteRegister);
+	NODE_SET_METHOD(target, "write_bits", WriteBits);
+	NODE_SET_METHOD(target, "write_registers", WriteRegisters);
+	NODE_SET_METHOD(target, "write_and_read_registers", WriteAndReadRegisters);
+	NODE_SET_METHOD(target, "send_raw_request", SendRawRequest);
+	NODE_SET_METHOD(target, "receive_confirmation", ReceiveConfirmation);
+	NODE_SET_METHOD(target, "reply_exception", ReplyException);
 	
-	target->Set(String::New("read_bits"), FunctionTemplate::New(js_read_bits)->GetFunction());
-	target->Set(String::New("read_input_bits"), FunctionTemplate::New(js_read_input_bits)->GetFunction());
-	target->Set(String::New("read_registers"), FunctionTemplate::New(js_read_registers)->GetFunction());
-	target->Set(String::New("read_input_registers"), FunctionTemplate::New(js_read_input_registers)->GetFunction());
-	target->Set(String::New("report_slave_id"), FunctionTemplate::New(js_report_slave_id)->GetFunction());
-	target->Set(String::New("write_bit"), FunctionTemplate::New(js_write_bit)->GetFunction());
-	target->Set(String::New("write_register"), FunctionTemplate::New(js_write_register)->GetFunction());
-	target->Set(String::New("write_bits"), FunctionTemplate::New(js_write_bits)->GetFunction());
-	target->Set(String::New("write_registers"), FunctionTemplate::New(js_write_registers)->GetFunction());
-	target->Set(String::New("write_and_read_registers"), FunctionTemplate::New(js_write_and_read_registers)->GetFunction());
-	target->Set(String::New("send_raw_request"), FunctionTemplate::New(js_send_raw_request)->GetFunction());
-	target->Set(String::New("receive_confirmation"), FunctionTemplate::New(js_receive_confirmation)->GetFunction());
-	target->Set(String::New("reply_exception"), FunctionTemplate::New(js_reply_exception)->GetFunction());
+	NODE_SET_METHOD(target, "mapping_new", MappingNew);
+	NODE_SET_METHOD(target, "mapping_free", MappingFree);
+	NODE_SET_METHOD(target, "receive", Receive);
+	NODE_SET_METHOD(target, "reply", Reply);
 	
-	target->Set(String::New("mapping_new"), FunctionTemplate::New(js_mapping_new)->GetFunction());
-	target->Set(String::New("mapping_free"), FunctionTemplate::New(js_mapping_free)->GetFunction());
-	target->Set(String::New("receive"), FunctionTemplate::New(js_receive)->GetFunction());
-	target->Set(String::New("reply"), FunctionTemplate::New(js_reply)->GetFunction());
+	NODE_SET_METHOD(target, "strerror", Strerror);
 	
-	target->Set(String::New("strerror"), FunctionTemplate::New(js_strerror)->GetFunction());
-	
-	target->Set(String::New("tcp_listen"), FunctionTemplate::New(js_tcp_listen)->GetFunction());
-	target->Set(String::New("tcp_accept"), FunctionTemplate::New(js_tcp_accept)->GetFunction());
-	target->Set(String::New("tcp_pi_listen"), FunctionTemplate::New(js_tcp_pi_listen)->GetFunction());
-	target->Set(String::New("tcp_pi_accept"), FunctionTemplate::New(js_tcp_pi_accept)->GetFunction());
+	NODE_SET_METHOD(target, "tcp_listen", TcpListen);
+	NODE_SET_METHOD(target, "tcp_accept", TcpAccept);
+	NODE_SET_METHOD(target, "tcp_pi_listen", TcpPiAccept);
+	NODE_SET_METHOD(target, "tcp_pi_accept", TcpPiAccept);
 	
 	// my functions
-	target->Set(String::New("map_to_json"), FunctionTemplate::New(map_to_json)->GetFunction());
-	target->Set(String::New("json_to_map"), FunctionTemplate::New(json_to_map)->GetFunction());
+	NODE_SET_METHOD(target, "map_to_json", MapToJson);
+	NODE_SET_METHOD(target, "json_to_map", JsonToMap);
 	
-	target->Set(String::New("tcp_accept_async"), FunctionTemplate::New(tcp_accept_async)->GetFunction());
-	target->Set(String::New("receive_async"), FunctionTemplate::New(receive_async)->GetFunction());
-	target->Set(String::New("connect_async"), FunctionTemplate::New(connect_async)->GetFunction());
-	target->Set(String::New("close_mt"), FunctionTemplate::New(close_mt)->GetFunction());
+	NODE_SET_METHOD(target, "tcp_accept_async", TcpAcceptAsync);
+	NODE_SET_METHOD(target, "receive_async", ReceiveAsync);
+	NODE_SET_METHOD(target, "connect_async", ConnectAsync);
+	NODE_SET_METHOD(target, "close_mt", CloseMt);
 }
 
 NODE_MODULE(modbus_binding, init)
+}

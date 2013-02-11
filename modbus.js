@@ -1066,7 +1066,9 @@ function create() {
 		// создать ведомое устройство (серер)
 		createSlave: function (args) {			
 			return createSlave(ctxParam, args);
-		}
+		},
+
+                version: function () { return mb.LIBMODBUS_VERSION_STRING; }
 	};
 }
 
