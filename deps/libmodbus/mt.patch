@@ -1,0 +1,300 @@
+diff --git a/src/modbus-private.h b/src/modbus-private.h
+index 4f84745..1e26223 100644
+--- a/src/modbus-private.h
++++ b/src/modbus-private.h
+@@ -110,6 +110,7 @@ typedef struct _modbus_backend {
+                                    const uint8_t *rsp, int rsp_length);
+     int (*connect) (modbus_t *ctx);
+     void (*close) (modbus_t *ctx);
++    void (*close_mt) (modbus_t *ctx);
+     int (*flush) (modbus_t *ctx);
+     int (*select) (modbus_t *ctx, fd_set *rset, struct timeval *tv, int msg_length);
+     void (*free) (modbus_t *ctx);
+@@ -126,6 +127,7 @@ struct _modbus {
+     struct timeval byte_timeout;
+     const modbus_backend_t *backend;
+     void *backend_data;
++    void *mt_data;
+ };
+ 
+ void _modbus_init_common(modbus_t *ctx);
+diff --git a/src/modbus-rtu-private.h b/src/modbus-rtu-private.h
+index 533ddbd..145e1d3 100644
+--- a/src/modbus-rtu-private.h
++++ b/src/modbus-rtu-private.h
+@@ -87,4 +87,10 @@ typedef struct _modbus_rtu {
+     int confirmation_to_ignore;
+ } modbus_rtu_t;
+ 
++typedef struct _modbus_rtu_mt {
++	/* Pipes for control in multithread */
++    int mtp_r;
++    int mtp_w;
++} modbus_rtu_mt_t;
++
+ #endif /* _MODBUS_RTU_PRIVATE_H_ */
+diff --git a/src/modbus-rtu.c b/src/modbus-rtu.c
+index 917221d..c184eff 100644
+--- a/src/modbus-rtu.c
++++ b/src/modbus-rtu.c
+@@ -943,6 +943,14 @@ static void _modbus_rtu_close(modbus_t *ctx)
+ #endif
+ }
+ 
++void _modbus_rtu_close_mt(modbus_t *ctx)
++{
++	_modbus_rtu_close(ctx);
++	
++	modbus_rtu_mt_t *ctx_mt = ctx->mt_data;
++	write(ctx_mt->mtp_w, "q", 1);
++}
++
+ static int _modbus_rtu_flush(modbus_t *ctx)
+ {
+ #if defined(_WIN32)
+@@ -970,7 +978,13 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
+         return -1;
+     }
+ #else
+-    while ((s_rc = select(ctx->s+1, rset, NULL, NULL, tv)) == -1) {
++	/* Add pipe descriptor to select */
++	modbus_rtu_mt_t *ctx_mt = ctx->mt_data;
++	FD_SET(ctx_mt->mtp_r, rset);
++	
++	int max_n = (ctx->s > ctx_mt->mtp_r) ? ctx->s : ctx_mt->mtp_r;
++	
++    while ((s_rc = select(max_n+1, rset, NULL, NULL, tv)) == -1) {
+         if (errno == EINTR) {
+             if (ctx->debug) {
+                 fprintf(stderr, "A non blocked signal was caught\n");
+@@ -978,6 +992,7 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
+             /* Necessary after an error */
+             FD_ZERO(rset);
+             FD_SET(ctx->s, rset);
++            FD_SET(ctx_mt->mtp_r, rset);
+         } else {
+             return -1;
+         }
+@@ -989,7 +1004,12 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
+         return -1;
+     }
+ #endif
+-
++	if (FD_ISSET(ctx_mt->mtp_r, rset)) {
++		/* Connection reset. */
++		errno = ECONNRESET;
++		return -1;
++	}
++	
+     return s_rc;
+ }
+ 
+@@ -1016,6 +1036,7 @@ const modbus_backend_t _modbus_rtu_backend = {
+     _modbus_rtu_pre_check_confirmation,
+     _modbus_rtu_connect,
+     _modbus_rtu_close,
++    _modbus_rtu_close_mt,
+     _modbus_rtu_flush,
+     _modbus_rtu_select,
+     _modbus_rtu_free
+@@ -1028,6 +1049,7 @@ modbus_t* modbus_new_rtu(const char *device,
+     modbus_t *ctx;
+     modbus_rtu_t *ctx_rtu;
+     size_t device_size;
++    modbus_rtu_mt_t *ctx_mt;
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
+     _modbus_init_common(ctx);
+@@ -1073,6 +1095,20 @@ modbus_t* modbus_new_rtu(const char *device,
+ #endif
+ 
+     ctx_rtu->confirmation_to_ignore = FALSE;
++    
++    /* Create pipe chanel */
++    ctx->mt_data = (modbus_rtu_mt_t *) malloc(sizeof(modbus_rtu_mt_t));
++    ctx_mt = (modbus_rtu_mt_t *)ctx->mt_data;
++    
++    int mtp[2];
++    if (pipe(mtp) == -1) {
++        fprintf(stderr, "ERROR Can't create pipe (%s)\n",
++			strerror(errno));
++		modbus_free(ctx);
++        return NULL;
++    }
++    ctx_mt->mtp_r = mtp[0];
++    ctx_mt->mtp_w = mtp[1];
+ 
+     return ctx;
+ }
+diff --git a/src/modbus-tcp-private.h b/src/modbus-tcp-private.h
+index 408d08a..8a2b43b 100644
+--- a/src/modbus-tcp-private.h
++++ b/src/modbus-tcp-private.h
+@@ -53,4 +53,10 @@ typedef struct _modbus_tcp_pi {
+     char service[_MODBUS_TCP_PI_SERVICE_LENGTH];
+ } modbus_tcp_pi_t;
+ 
++
++typedef struct _modbus_tcp_mt {
++	/* Main listen socket */
++    int lst_socket;
++} modbus_tcp_mt_t;
++
+ #endif /* _MODBUS_TCP_PRIVATE_H_ */
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index e50cfc8..f83c9ca 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -421,6 +421,17 @@ static void _modbus_tcp_close(modbus_t *ctx)
+     close(ctx->s);
+ }
+ 
++void _modbus_tcp_close_mt(modbus_t *ctx)
++{
++	_modbus_tcp_close(ctx);
++	
++	modbus_tcp_mt_t *ctx_mt = ctx->mt_data;
++	if (ctx_mt->lst_socket != -1) {
++		shutdown(ctx_mt->lst_socket, SHUT_RDWR);
++		close(ctx_mt->lst_socket);
++	}
++}
++
+ static int _modbus_tcp_flush(modbus_t *ctx)
+ {
+     int rc;
+@@ -465,6 +476,7 @@ int modbus_tcp_listen(modbus_t *ctx, int nb_connection)
+     int yes;
+     struct sockaddr_in addr;
+     modbus_tcp_t *ctx_tcp = ctx->backend_data;
++    modbus_tcp_mt_t *ctx_mt = ctx->mt_data;
+ 
+ #ifdef OS_WIN32
+     if (_modbus_tcp_init_win32() == -1) {
+@@ -498,6 +510,8 @@ int modbus_tcp_listen(modbus_t *ctx, int nb_connection)
+         close(new_socket);
+         return -1;
+     }
++    
++    ctx_mt->lst_socket = new_socket;
+ 
+     return new_socket;
+ }
+@@ -512,6 +526,7 @@ int modbus_tcp_pi_listen(modbus_t *ctx, int nb_connection)
+     const char *service;
+     int new_socket;
+     modbus_tcp_pi_t *ctx_tcp_pi = ctx->backend_data;
++    modbus_tcp_mt_t *ctx_mt = ctx->mt_data;
+ 
+     if (ctx_tcp_pi->node[0] == 0)
+         node = NULL; /* == any */
+@@ -594,6 +609,8 @@ int modbus_tcp_pi_listen(modbus_t *ctx, int nb_connection)
+     if (new_socket < 0) {
+         return -1;
+     }
++    
++    ctx_mt->lst_socket = new_socket;
+ 
+     return new_socket;
+ }
+@@ -693,6 +710,7 @@ const modbus_backend_t _modbus_tcp_backend = {
+     _modbus_tcp_pre_check_confirmation,
+     _modbus_tcp_connect,
+     _modbus_tcp_close,
++    _modbus_tcp_close_mt,
+     _modbus_tcp_flush,
+     _modbus_tcp_select,
+     _modbus_tcp_free
+@@ -716,6 +734,7 @@ const modbus_backend_t _modbus_tcp_pi_backend = {
+     _modbus_tcp_pre_check_confirmation,
+     _modbus_tcp_pi_connect,
+     _modbus_tcp_close,
++    _modbus_tcp_close_mt,
+     _modbus_tcp_flush,
+     _modbus_tcp_select,
+     _modbus_tcp_free
+@@ -725,6 +744,7 @@ modbus_t* modbus_new_tcp(const char *ip, int port)
+ {
+     modbus_t *ctx;
+     modbus_tcp_t *ctx_tcp;
++    modbus_tcp_mt_t *ctx_mt;
+     size_t dest_size;
+     size_t ret_size;
+ 
+@@ -751,6 +771,9 @@ modbus_t* modbus_new_tcp(const char *ip, int port)
+ 
+     ctx->backend_data = (modbus_tcp_t *) malloc(sizeof(modbus_tcp_t));
+     ctx_tcp = (modbus_tcp_t *)ctx->backend_data;
++    
++    ctx->mt_data = (modbus_tcp_mt_t *) malloc(sizeof(modbus_tcp_mt_t));
++    ctx_mt = (modbus_tcp_mt_t *)ctx->mt_data;
+ 
+     dest_size = sizeof(char) * 16;
+     ret_size = strlcpy(ctx_tcp->ip, ip, dest_size);
+@@ -770,6 +793,8 @@ modbus_t* modbus_new_tcp(const char *ip, int port)
+ 
+     ctx_tcp->port = port;
+     ctx_tcp->t_id = 0;
++    
++    ctx_mt->lst_socket = -1;
+ 
+     return ctx;
+ }
+@@ -779,6 +804,7 @@ modbus_t* modbus_new_tcp_pi(const char *node, const char *service)
+ {
+     modbus_t *ctx;
+     modbus_tcp_pi_t *ctx_tcp_pi;
++    modbus_tcp_mt_t *ctx_mt;
+     size_t dest_size;
+     size_t ret_size;
+ 
+@@ -792,6 +818,9 @@ modbus_t* modbus_new_tcp_pi(const char *node, const char *service)
+ 
+     ctx->backend_data = (modbus_tcp_pi_t *) malloc(sizeof(modbus_tcp_pi_t));
+     ctx_tcp_pi = (modbus_tcp_pi_t *)ctx->backend_data;
++    
++    ctx->mt_data = (modbus_tcp_mt_t *) malloc(sizeof(modbus_tcp_mt_t));
++    ctx_mt = (modbus_tcp_mt_t *)ctx->mt_data;
+ 
+     dest_size = sizeof(char) * _MODBUS_TCP_PI_NODE_LENGTH;
+     ret_size = strlcpy(ctx_tcp_pi->node, node, dest_size);
+@@ -826,6 +855,8 @@ modbus_t* modbus_new_tcp_pi(const char *node, const char *service)
+     }
+ 
+     ctx_tcp_pi->t_id = 0;
++    
++    ctx_mt->lst_socket = -1;
+ 
+     return ctx;
+ }
+diff --git a/src/modbus.c b/src/modbus.c
+index d075522..03bbb94 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -1515,6 +1515,14 @@ void modbus_close(modbus_t *ctx)
+     ctx->backend->close(ctx);
+ }
+ 
++void modbus_close_mt(modbus_t *ctx)
++{
++    if (ctx == NULL)
++        return;
++	
++    ctx->backend->close_mt(ctx);
++}
++
+ void modbus_free(modbus_t *ctx)
+ {
+     if (ctx == NULL)
+diff --git a/src/modbus.h b/src/modbus.h
+index 70a011f..b6ac3aa 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -169,6 +169,7 @@ EXPORT int modbus_get_header_length(modbus_t *ctx);
+ 
+ EXPORT int modbus_connect(modbus_t *ctx);
+ EXPORT void modbus_close(modbus_t *ctx);
++EXPORT void modbus_close_mt(modbus_t *ctx);
+ 
+ EXPORT void modbus_free(modbus_t *ctx);
+ 

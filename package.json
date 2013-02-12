@@ -1,6 +1,6 @@
 {
   "name": "modbus",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "libmodbus binding",
   "keywords": [
     "modbus"
@@ -10,8 +10,7 @@
     "node": ">= 0.9.9"
   },
   "scripts": {
-    "install": "./make_libmodbus.sh && node-gyp configure build",
-    "preuninstall": "rm -rf libmodbus build"
+    "preuninstall": "rm -rf build"
   },
   "author": {
     "name": "Davydov Denis",
@@ -25,11 +24,15 @@
     {
       "name": "Craig Anderson",
       "email": "cdazero@gmail.com"
+    },
+    {
+      "name": "Mario Gruber",
+      "email": "thalionath@gmail.com"
     }
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/CDA0/nodejs_libmodbus.git"
+    "url": "https://github.com/thalionath/nodejs_libmodbus.git"
   },
   "license": "BSD"
 }
