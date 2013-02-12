@@ -30,11 +30,7 @@
     'include_dirs': [
       # platform and arch-specific headers
       'config/<(OS)/<(target_arch)'
-    ],
-    'defines': [
-      'PIC',
-      'HAVE_CONFIG_H'
-    ],
+    ]
   },
 
   'targets': [
@@ -48,6 +44,10 @@
         'src/modbus-data.c',
         'src/modbus.rtu',
         'src/modbus.tcp'     
+      ],
+      'defines': [
+        'PIC',
+        'HAVE_CONFIG_H'
       ],
       'dependencies': [
       ],
