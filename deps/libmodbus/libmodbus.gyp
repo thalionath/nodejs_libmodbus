@@ -42,8 +42,8 @@
       'sources': [
         'src/modbus.c',
         'src/modbus-data.c',
-        'src/modbus.rtu',
-        'src/modbus.tcp'     
+        'src/modbus-rtu.c',
+        'src/modbus-tcp.c'     
       ],
       'defines': [
         'PIC',
